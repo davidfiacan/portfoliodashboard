@@ -9,3 +9,9 @@ text
 text
 text
 text
+
+## Skills demonstrated / technologies used
+text
+text
+text
+text
