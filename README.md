@@ -10,7 +10,7 @@ text
 text
 text
 
-## Skills demonstrated / technologies used
+## Skills demonstrated / technologies used in this project
 text
 text
 text
