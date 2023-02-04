@@ -8,7 +8,7 @@ text
 ### 1) Install python on your machine
 - I recommend using Anaconda distribution that can be downloaded from **https://www.anaconda.com/products/distribution**
 ### 2) Download the project
-- save the entire project folder on your machine, e.g. **"C:\project"**
+- save the entire project folder on your machine, e.g. `"C:\project"`
 ### 3) Intall the required python modules
 - using the command prompt, set current the working directory to the project's folder using **"cd C:\project"**
 - then run **"pip install -r requirements.txt"** command - this will install all python modules that are required for this project, as listed in the "requirements.txt" text file
