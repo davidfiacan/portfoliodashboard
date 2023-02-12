@@ -16,9 +16,7 @@ text
 - this script creates SQL database, tables, reads data from CSV files provided (tradingdashboard\data), manipulates the data and inserts it into database, ready to be visualised & analysed from within the dashboard. It is vital that this procedure is run prior to instantiating the actual dashboard
 - run the script from the command line using `python prep.py` from within the project's folder. You may need to set the current working directory to the project's folder using `cd C:\tradingdashboard`
 ### 5) Run the dashboard
-- using the command prompt, firstly set the project's folder as current directory, and then run the launch the dashboard using streamlit
-- `"cd C:\tradingdashboard"`
-- `"streamlit run MAIN.py"`
+- launch the dashboard from within the project's folder using using `streamlit run MAIN.py`. You may need to set the current working directory to the project's folder using `cd C:\tradingdashboard` if not done already
 
 ## Skills demonstrated / technologies used in this project
 text
