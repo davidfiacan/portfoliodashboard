@@ -9,7 +9,7 @@ text
 - I recommend using Anaconda distribution that can be downloaded from **https://www.anaconda.com/products/distribution**
 ### 2) Download the project
 - save the entire project folder on your machine, e.g. `"C:\tradingdashboard"`
-### 3) Intall the required python modules
+### 3) Install the required python modules
 - using the command prompt, set current the working directory to the project's folder using `"cd C:\tradingdashboard"`
 - then run `"pip install -r requirements.txt"` command - this will install all python modules that are required for this project, as listed in the "requirements.txt" text file
 ### 4) Run the data prep python script ("prep.py")
@@ -17,10 +17,10 @@ text
 - run the script from the command line using the example below - adjust the current directory accordingly if using different directory for the project
 - `"cd C:\tradingdashboard"`
 - `"python prep.py"`
-### 5) Make sure python is installed on your machine
-text
-###
-text
+### 5) Run the dashboard
+- using the command prompt, firstly set the project's folder as current directory, and then run the launch the dashboard using streamlit
+- `"cd C:\tradingdashboard"`
+- `"streamlit run main.py"`
 
 ## Skills demonstrated / technologies used in this project
 text
