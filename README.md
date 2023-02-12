@@ -20,7 +20,7 @@ text
 ### 5) Run the dashboard
 - using the command prompt, firstly set the project's folder as current directory, and then run the launch the dashboard using streamlit
 - `"cd C:\tradingdashboard"`
-- `"streamlit run main.py"`
+- `"streamlit run MAIN.py"`
 
 ## Skills demonstrated / technologies used in this project
 text
