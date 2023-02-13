@@ -200,7 +200,7 @@ SQLQ_SYSTEMEQUITY = lambda systems, d_from, d_to: f"""
                     (SELECT "DATE", "SYSTEM", SUM("PL") AS "PL_OPEN" FROM openequity WHERE "SYSTEM" IN {systems} GROUP BY 1,2 ORDER BY 1,2)
                 -- MAIN SELECT STATEMENT USING UNION
                 -- this could be done by left joining bizdates with trades and then right joining trades with openequity
-                -- however as SQLite does not support right joins, had to work around this by using UNION
+                -- however since SQLITE DOES NOT SUPPORT RIGHT JOINS, I had to work around this by using UNION
                 -- in order to get all business dates and totals of closed and open P/L by system by business date (across all business dates, even if no /L records on given date)
                 -- in order for UNION to work, all queries have to have same column count - filled with placeholder columns; these are dropped post-export in pandas
                 ----------------------------------

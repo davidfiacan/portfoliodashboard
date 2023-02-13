@@ -1,31 +1,36 @@
-# 12/01/2023
-# FINAL
+# Final review 12-02 - FINAL
 
-    
+# Non-standard libraries - batch install using 'requirements.txt' 
 import pandas as pd  # pip install pandas
 import plotly.express as px  # pip install plotly-express
 import streamlit as st  # pip install streamlit
 import sqlite3 # pip install pysqlite3
 from sqlite3 import Error  # pip install pysqlite3
+
+# Standard libraries
 import datetime as dt
 import numpy as np
 import os
 
-# Import modules
+# Import project's modules
 from tl_commonfuncs import * 
 from tl_db import * # class to interact with the database
 from tl_sql_tabledefs import * # definitions of tables to be created when the db class is instantiated 
 from tl_sql_queries import * # actual SQL queries stored as dictionaries
+
 
 # PAGE-SPECIFIC FUNCTIONS
 #-------------------------------------------------------------------
 
 # PAGE CONFIG
 #-------------------------------------------------------------------
+
 st.set_page_config(page_title="Trading dashboard 1.0", page_icon=":bar_chart:", layout="wide")
+
 
 # PAGE-SPECIFIC CONSTANTS
 #-------------------------------------------------------------------
+
 SUBHEADER = "PORTFOLIO"
 DASHDATE = dt.date(2022,12,31) #dt.datetime.now().date()
 FILTERS_PER = {'Current month' : -1, 
@@ -34,17 +39,18 @@ FILTERS_PER = {'Current month' : -1,
                'YTD': -DASHDATE.month, 
                'All' : None}
 SECTIONS = {1:'Portfolio equity',
-            2:'Monthly P/L',
-            3:'Trades'
+            2:'Monthly P/L'
            }
 CAPITAL = 80_000
 
-# INSTANTIATE DB CLASS (CONNECTS TO DATABSE WHEN INSTANTIATED)
+# INSTANTIATE DB CLASS
 #-------------------------------------------------------------------
-db = Db() # tl_db.Db class
 
-# Sidebar (user filters)
+db = Db() 
+
+# SIDEBAR (USER'S FILTERS)
 #-------------------------------------------------------------------
+
 with st.sidebar:    
     st.sidebar.selectbox("Equity and monthly table date range", 
                          options = FILTERS_PER.keys(), 
@@ -61,18 +67,21 @@ with st.sidebar:
         f_per = eomonth(DASHDATE,FILTERS_PER[st.session_state.user_main_filtper])
     f_per = f_per.strftime("%Y-%m-%d")
     
-# RETRIEVE DATA FROM DATABASEclosedpl
-# using QUERIES dict that holds SQL queries (in 'tl_sql_queries' script)
+
+# RETRIEVE DATA FROM DATABASE
 #-------------------------------------------------------------------
+
 if st.session_state.user_main_benchmark:
-    data_equity = db.do_execsqlpd_r(SQLQ_DAILYEQSPY(CAPITAL, f_per, DASHDATE),datecols=['DATE'])
+    data_equity = db.do_execsqlpd_r(SQLQ_DAILYEQSPY(CAPITAL, f_per, DASHDATE), datecols=['DATE'])
     data_monthly = db.do_execsqlpd_r(SQLQ_MONTHLYSPY(CAPITAL, f_per, DASHDATE))
 else:
-    data_equity = db.do_execsqlpd_r(SQLQ_DAILYEQ(CAPITAL, f_per, DASHDATE),datecols=['DATE'])
+    data_equity = db.do_execsqlpd_r(SQLQ_DAILYEQ(CAPITAL, f_per, DASHDATE), datecols=['DATE'])
     data_monthly = db.do_execsqlpd_r(SQLQ_MONTHLY(CAPITAL, f_per, DASHDATE))
     
-# Section 1 - portfolio equity chart
+
+# SECTION 1 - PORTFOLIO EQUITY CHART
 #-------------------------------------------------------------------
+
 st.caption(f"Date: **{DASHDATE}**")
 st.subheader(SECTIONS[1])
 fig = px.line(data_equity, 
@@ -85,8 +94,9 @@ fig.update_layout(legend_orientation='h')
 st.plotly_chart(fig, use_container_width=True)
 
 
-# Section 3 - monthly profit table and chart
+# SECTION 2 - MONTHLY PROFIT TABLE AND CHART
 #-------------------------------------------------------------------
+
 col1, col2 = st.columns(2)
 with col1:
     st.subheader(SECTIONS[2])

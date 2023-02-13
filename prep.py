@@ -1,15 +1,15 @@
- # 05/01/2023
-# FINAL, done
-
+# Non-standard libraries - batch install using 'requirements.txt' 
 import yfinance as yf # pip install yfinance
 import pandas as pd  # pip install pandas
 import sqlite3 # pip install pysqlite3
 from sqlite3 import Error  # pip install pysqlite3
+
+# Standard libraries
 import datetime as dt
 import os
 import numpy as np
 
-# Import modules
+# Import project's modules
 from tl_commonfuncs import * 
 from tl_db import * # class to interact with the database
 from tl_sql_tabledefs import * # definitions of tables to be created when the db class is instantiated 
@@ -19,6 +19,7 @@ from tl_sql_queries import * # actual SQL queries stored as dictionaries
 # SCRIPT-SPECIFIC CONSTANTS
 #----------------------------------------------------------------------------------------
 
+DBDIR = os.path.join(os.getcwd(),'database')
 DBPATH = os.path.join(os.getcwd(),'database','db.db')
 DIR_DATA = os.path.join(os.getcwd(),'data')
 TODAY = dt.datetime.now().date()
@@ -62,17 +63,27 @@ def dnyahoodatasingle(directory, symbol, start):
     data.insert(len(data.columns),"MONTH",data['DATE'].apply(lambda d: d.month))
     data.insert(len(data.columns),"YEAR",data['DATE'].apply(lambda d: d.year))
 
-    # Save as CSV
+    # Save as CSV / return
     data.to_csv(os.path.join(directory,f'{symbol}.csv'),index=False)
     return data
 
-
-# MAIN
-#----------------------------------------------------------------------------------------
+def prep_createdbdir():
+    """
+    Creates directory within project's folder using DBDIR constant
+    This is used to store database (db file) 
+    If folder exists then does nothing
+    """
+    
+    if not os.path.isdir(DBDIR): 
+        os.makedirs(DBDIR)
 
 def prep_benchmarkdn(db):
     """
-    Dashboard prep - download benchmark data from Yahoo finance and insert into database
+    Dashboard prep - download benchmark data from Yahoo Finance and insert into database
+    
+    params:
+    ------
+    db: instance of db class object (tl_db module)
     """
     
     messages = ["Downloading benchmark data and inserting into database"]
@@ -86,9 +97,14 @@ def prep_benchmarkdn(db):
     
 def prep_openequity(db):
     """
-    Dashboard prep - read historical open P/L by day data saved as CSV in a wide format; 
-        transforms the data from original wide format to long format using pandas and 
-        inserts into database
+    Dashboard prep
+     - reads historical open P/L by day data saved as CSV in a wide format (saved in DIR_DATA)
+     - transforms the data from original wide format to long format using pandas
+     - inserts transformed data into database
+    
+    params:
+    ------
+    db: instance of db class object (tl_db module)
     """
 
     # Read my historical open P/L data in wide format (from my VBA trade log application I used before)
@@ -104,7 +120,7 @@ def prep_openequity(db):
 
     # Then re-read historical open P/L as multi-index dataframe with two headers (date and columns)
     # this is so that the df can be indexed by date (level 1)
-    openpl = pd.read_csv(os.path.join(DIR_DATA,f'{F_OPENEQUITY}.csv'),header=[1,2])
+    openpl = pd.read_csv(os.path.join(DIR_DATA,f'{F_OPENEQUITY}.csv'), header=[1,2])
     
     # Iterate over dates and populate openequity dataframe
     messages = [f"Populating open P/L by day",
@@ -156,10 +172,15 @@ def prep_openequity(db):
                 '----']
     printmessages(messages)
     
-    
 def prep_trades(db):
     """
-    Dashboard prep - read trades from CSV and insert into database 
+    Dashboard prep 
+     - reads live, executed trades from CSV (saved in DIR_DATA)
+     - inserts into database 
+    
+    params:
+    ------
+    db: instance of db class object (tl_db module)
     """
     
     messages = ["Reading trades data"]
@@ -184,12 +205,18 @@ def prep_trades(db):
             '----']
     printmessages(messages)
 
-    
 def prep_backtestdata(db):
     """
-    FILL DOCSTRING
-    """
+    Dashboard prep
+     - reads backtest (hypothetical) data for all trading systems from CSV (saved in DIR_DATA)
+     - inserts into database - creates 'backtestequity' table with dynamic number of columns (1 column = 1 system)
+         depending on how many columns appear in the CSV (scalable solution as column count may change)
     
+    params:
+    ------
+    db: instance of db class object (tl_db module)
+    """
+
     messages = ["Reading backtest data"]
     printmessages(messages)
     
@@ -205,7 +232,7 @@ def prep_backtestdata(db):
     # Create backtestequity table
     [db.do_execsql(q,'write') for q in TABLE_BACKTEST]
 
-    # Add dynamic number of columns (1 col per system) to match systems in btdata csv
+    # Add dynamic number of columns (1 col per system) to match systems in btdata df
     [db.do_execsql(TABLE_BACKTEST2(sys),'write') for sys in systems]
     
     # Then insert data to table from df using pandas 
@@ -215,10 +242,18 @@ def prep_backtestdata(db):
                 '----']
     printmessages(messages)
     
-
 def prep_montecarlo(db, runscount):
     """
-    FILL DOCSTRING
+    Dashboard prep
+     - runs a simplified version of monte-carlo (MC) simulation on the backtest data previouly inserted into database
+     - MC simulation takes daily percent changes in backtest equity curve of a system and reshuffles these randomly N times
+     - rationale of this process is to introduce randomness to stress-test the trading system's backtest (hypothetical) performance
+     - demonstrating working with numpy arrays (faster than pandas), transforming data from wide format to long format
+    
+    params:
+    ------
+    runscount: int: how many monte-carlo runs to be conducted
+    db: instance of db class object (tl_db module)
     """
     
     messages = [f"Running monte-carlo simulation ({str(runscount)} runs) with backtest data"]
@@ -261,9 +296,6 @@ def prep_montecarlo(db, runscount):
         # Add data to dictionaries
         eqdata_wide[s] = mcdf
         eqdata_long[s] = mcdf.melt(var_name="EQNUM",value_name="EQVAL") # long format - one column that holds ALL MC equities
-        
-        # mcdf.to_csv(f"mcdd_{s}.csv")
-        # eqdata_long[s].to_csv(f"mcdd_{s}.csv")
     
     datasize = len(btdata) * len(systems) * runscount
     messages = [f"Writing {str(datasize)} monte-carlo datapoints to database ({str(len(btdata))} rows * {str(len(systems))} * {str(runscount)} runs)"]
@@ -284,13 +316,12 @@ def prep_montecarlo(db, runscount):
     messages = ["Done!",
                 '----']
     printmessages(messages)
-    #return eqdata_wide, eqdata_long
-    
+    # return eqdata_wide, eqdata_long
     
 def prep_bizdates(db):
     """
-    Dashboard prep - creates bizdates table by extracting a list 
-        of buiness days from benchmark_spy table 
+    Dashboard prep 
+     - creates 'bizdates' table by extracting a list of buiness days from 'benchmark_spy' table 
     """
     
     messages = ["Extracting list of business dates"]
@@ -306,7 +337,9 @@ def prep_bizdates(db):
     printmessages(messages)
     
     
-    
+# MAIN
+#----------------------------------------------------------------------------------------
+        
 if __name__ == '__main__':
     
     messages = []
@@ -316,7 +349,10 @@ if __name__ == '__main__':
                "------------"]
     printmessages(messages)
     
-    # Instantiate Db class from tl_db module
+    # Create database folder within the project's directory 
+    prep_createdbdir()
+    
+    # Instantiate Db class from tl_db module (will create database in the folder created by prep_createdbdir func)
     messages = [f"Connecting to database: {DBPATH}"]
     printmessages(messages)
     db = Db()

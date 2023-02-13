@@ -1,21 +1,18 @@
-# 22/01
-# sort out charts' legends - get rid of them
-# DD rolling correl - add simple moving average to the chart as well
-# finish making proper docstrings across all pages
-# then final clean up, restructuring, getting rid of obsolote functions etc.
-# then done!!!!!
+# Final review 12-02 - FINAL
 
-
+# Non-standard libraries - batch install using 'requirements.txt' 
 import pandas as pd  # pip install pandas
 import plotly.express as px  # pip install plotly-express
 import streamlit as st  # pip install streamlit
 import sqlite3 # pip install pysqlite3
 from sqlite3 import Error  # pip install pysqlite3
+
+# Standard libraries
 import datetime as dt
 import numpy as np
 import os
 
-# Import modules
+# Import project's modules
 from tl_commonfuncs import * 
 from tl_db import * # class to interact with the database
 from tl_sql_tabledefs import * # definitions of tables to be created when the db class is instantiated 
@@ -25,47 +22,33 @@ from tl_sql_queries import * # actual SQL queries stored as dictionaries
 # PAGE-SPECIFIC FUNCTIONS
 #-------------------------------------------------------------------
 
-def calcequity_systems(per, systems, sysallocs, capital): 
-        
-    # Execute SQL query - closed and open P/L by business date by system
-    df = db.do_execsqlpd_r(SQLQ_SYSTEMEQUITY(systems,per,DASHDATE), datecols=['DATE'])
-    
-    # Clean up data after SQL query; drop excessive cols and rows, replace placeholder values with 0'
-    df.columns = df.columns.str.replace('"','')
-    
-    # Using new pandas method chaining
-    df = (df.replace({"PL_CLOSED":float(0),"PL_OPEN":float(0)})
-            .drop(['PL_TOTAL'],axis=1)
-            .set_index('SYSTEM')
-            .drop('SYSTEM')
-            .reset_index(drop=False))
-    
-    # Create pivot table by system 
-    pivot = pd.pivot_table(df, index='DATE', columns=df['SYSTEM'], values=['PL_CLOSED','PL_OPEN'], aggfunc=sum, fill_value=0)
-    
-    # Absolute values equity - cumulative sum of closed P/L by system + its open P/L at end of each date
-    # -- then add initial capital for each system using const SYSALLOC and CAPITAL
-    # -- using numpy vectorize to calculate this - faster than doing this with pandas .add method (pd 13ms, np 3.6ms)
-    equity_abs = pivot['PL_CLOSED'].cumsum() + pivot['PL_OPEN']
-    def addcapital(sys, values):
-        return values + (sysallocs[sys] * capital)
-    for s in equity_abs.columns: 
-        equity_abs[s] = np.vectorize(addcapital)(s, equity_abs[s])
-
-    # Construct final equity - percentage return values
-    # -- use absolute values to calculate daily % change 
-    # -- then calculate cumualtive % return using cumprod method
-    equity_pct = equity_abs.pct_change().fillna(0)
-    equity_pct = ((1 + equity_pct).cumprod() - 1) * 100
-    
-    return equity_pct.reset_index(), equity_abs.reset_index()
-
 def calcdd_systems(eqdata):
+    """
+    Calculates percentage size of drawdowns (current open loss from the highest equity value) for
+        all systems (columns) in equity dataframe passed
+    Returns dataframe in the same format with drawdown values
+    
+    params:
+    -------
+    eqdata: pd dataframe: dataframe containing the equity data in wide format (1 column = 1 system) 
+    """
+    
     for s in eqdata.columns[1:]:
         eqdata[s] = (eqdata[s] / eqdata[s].cummax() - 1) * 100 
     return eqdata
 
 def getcurrentdd(df, s):
+    """
+    Gets value of current drawdown for specified trading system from the drawdown dataframe passed. 
+    Returns 2 values:
+     - length of current drawdown (days)
+     - size of current drawdown (percent)
+    
+    params:
+    -------
+    df: pd dataframe: dataframe in wide format (1 column = 1 system) containing drawdown datapoints
+    s: str: system string to get the value of the drawdown for
+    """
     
     # Trim to passed sys only
     df = df.loc[:,s]
@@ -81,7 +64,16 @@ def getcurrentdd(df, s):
     
     return ddlen, abs(ddpct)
 
-def calcddcor(data_dd, mawindow):
+def calcddcor(data_dd, rollperiod):
+    """
+    Calculates rolling correlation of all drawdowns of active trading systems from the dataframe passed
+    Returns pd Series of combined correlation of all systems in data_dd dataframe passed
+    
+    params:
+    -------
+    data_dd: pd dataframe: dataframe in wide format (1 column = 1 system) containing drawdown datapoints
+    rollperiod: int: lookback period to base the rolling correlation on
+    """
     
     data_dd = data_dd.set_index('DATE')
     
@@ -92,7 +84,7 @@ def calcddcor(data_dd, mawindow):
     syscount = len(data_dd.columns)
     
     # Calculate rolling correlation of drawdowns on any given day
-    rollingcor = data_dd.rolling(mawindow).corr()
+    rollingcor = data_dd.rolling(rollperiod).corr()
     
     # Then work out combined correlation 
     # -- need to remove 1's from the correlation matrix, remove duplicates and then work out the overall average
@@ -103,15 +95,16 @@ def calcddcor(data_dd, mawindow):
 
 # PAGE CONFIG
 #-------------------------------------------------------------------
+
 st.set_page_config(page_title="Trading dashboard 1.0", page_icon=":bar_chart:", layout="wide")
 st.session_state.user_pg3_plotall = False
 
 
 # PAGE-SPECIFIC CONSTANTS
 #-------------------------------------------------------------------
+
 SUBHEADER = "SYSTEM RISK"
 
-# DASHDATE = dt.datetime.now().date()
 DASHDATE = dt.date(2022,12,31)
 
 FILTERS_PER = {'Current month' : -1, 
@@ -141,35 +134,33 @@ SYSALLOC = {'MPL':0.33,
          'MES_BOLLINGER':0.25}
 
 CAPITAL = 80_000
-DIR_DATA = os.path.join(os.getcwd(),'data')
-F_BTDATA = 'backtestdata'
 WORSTDDCOUNT = 10
 DDCORLEVEL = 0.10
 DDCORLOOKBACK = 60
 
 # INSTANTIATE DB CLASS, CONNECT, DOWNLOAD & UPDATE BENCHMARK, RETRIEVE DB DATA
 #-------------------------------------------------------------------
-db = Db() # tl_db.Db class
+
+db = Db() 
 
 
-
-# Sidebar (user filters)
+# SIDEBAR (USER FILTERS)
 #-------------------------------------------------------------------
 
 # get list of unique systems from the backtest table 
-# -- reading from SQL table rather than directly from CSV using pandas (1 ms v 10 ms!!!)
+# -- reading from SQL table rather than directly from CSV using pandas (10 times faster - 1 ms v 10 ms!!!)
 btsystems = list(db.do_execsqlpd_r(SQLQ_BACKTESTSYS).columns[1:].unique().str.upper())
 
-# Filtes for 
+# Filters
 f_per = dt.date(2000,1,1).strftime("%Y-%m-%d")
 f_sys_eq = '(SELECT DISTINCT [SYSTEM] FROM trades)'
 
 systems = ["All"]
-systems.extend(db.do_execsql(SQLQ_SYSTEMLIST,'read')['SYSTEM'].to_list())
-
+# systems.extend(db.do_execsql(SQLQ_SYSTEMLIST,'read')['SYSTEM'].to_list())
+systems.extend(db.do_execsqlpd_r(SQLQ_SYSTEMLIST)['SYSTEM'].to_list())
 with st.sidebar:    
     
-    # User option 1: 
+    # User option 1: system/s to plot in the underwater equity chart
     st.multiselect("Systems for underwater equity plot", 
                systems, 
                key = "user_pg3_filtsys", 
@@ -192,14 +183,13 @@ with st.sidebar:
              horizontal=True)
     
 # RETRIEVE DATA FROM DATABASE
-# using QUERIES dict that holds SQL queries (in 'tl_sql_queries' script)
 #-------------------------------------------------------------------
 
-# Retrieve equity data and calculate drawdowns 
-data_equity_pct, data_equity_abs = calcequity_systems(f_per, f_sys_eq, SYSALLOC, CAPITAL)
+# Equity data, drawdown data
+data_equity_pct, data_equity_abs = calcequity_systems(db, f_per, f_sys_eq, SYSALLOC, CAPITAL)
 data_dd = calcdd_systems(data_equity_abs)
 
-# Calculate rolling drawdown correlation
+# Rolling combined correlation of system drawdowns
 ddcorr = calcddcor(data_dd, DDCORLOOKBACK)
 
 # Get current system's drawdown figures (displayed in the key metrics section)
@@ -212,13 +202,14 @@ data_histdd = db.do_execsqlpd_r(SQLQ_TOPDD(st.session_state.user_pg3_filtsysmcdd
 worstddn = data_histdd.head(WORSTDDCOUNT)[st.session_state.user_pg3_mcddplot.upper()].iloc[-1]
 worstdd1 = data_histdd.head(1)[st.session_state.user_pg3_mcddplot.upper()].iloc[-1]
 
-# Section 1 - header with metrics
+# SECTION 1 - KEY METRICS
 #-------------------------------------------------------------------
+
 st.caption(f"Date: **{DASHDATE}**")
 st.subheader(SECTIONS[1](st.session_state.user_pg3_filtsysmcdd))
 c1, c2, c3 = st.columns(3)
 with c1:
-    # Format curddpct to 2 decimal places (so that the text in key metrics section is pretty-formatted)
+    # Trim curddpct float so that only 2 decimal places are displayed in the metrics section
     curddpct_s = str(curddpct)
     curddpct_s = curddpct_s[:curddpct_s.find(".") + 3]
     st.caption(f"Current DD size: **{curddpct_s}**%")
@@ -229,10 +220,10 @@ with c3:
 st.markdown('---')
 
 
-# Section 2 - system underwater equity 
+# SECTION 2 - UNDERWATER (DRAWDOWN) CHART
 #-------------------------------------------------------------------
 
-# Determine what to plot on Y axis depending on user's filter
+# Determine what to plot on Y axis depending on user's filter (either all systems or only some)
 yplot =  data_dd.columns[1:] if st.session_state.user_pg3_plotall else st.session_state.user_pg3_filtsys
 
 st.subheader(SECTIONS[2])
@@ -245,8 +236,9 @@ fig.update_xaxes(title=None)
 fig.update_layout(legend_orientation='h')
 st.plotly_chart(fig, use_container_width=True)
 
-# Section 3 - system drawdown correlation & drawdown distribution
+# SECTION 3 - COMBINED DRAWDOWN CORRELATION OF ALL SYSTEMS & CURRENT DRAWDOWN DISTRIBUTION V MONTE-CARLO 
 #-------------------------------------------------------------------
+
 c1, c2 = st.columns(2)
 
 # Combined correlation of all system drawdowns
@@ -255,9 +247,11 @@ with c1:
     st.caption(f"Combined {str(DDCORLOOKBACK)}-day rolling correlation of active system drawdowns")
     fig = px.line(ddcorr[DDCORLOOKBACK:])
     fig.add_hline(y=DDCORLEVEL, line_width=1, line_dash="dot", line_color="red" )
+    
     fig.update_yaxes(title=None)
     fig.update_xaxes(title=None)
     fig.update_layout(legend_orientation='h')
+    
     st.plotly_chart(fig,use_container_width=True)
     
 # Current DD v MC dd's distribution chart
@@ -266,12 +260,15 @@ with c2:
     st.caption(f"Current drawdown (yellow) compared to worst {str(WORSTDDCOUNT)} monte-carlo drawdowns (red area)")
     
     fig = px.scatter(data_histdd,x=[st.session_state.user_pg3_mcddplot.upper()])
+    
     # Add vertical markers - current DD 
     curplot = curddlen if st.session_state.user_pg3_mcddplot == 'Days' else curddpct
     fig.add_vline(x=curplot, line_width=1, line_dash="dot", line_color="yellow" )
     fig.add_vrect(x0=worstddn, x1=worstdd1, line_width=0, fillcolor="red", opacity=0.3)
+    
     fig.update_xaxes(title=f"MC DD {st.session_state.user_pg3_mcddplot.upper()}")
     fig.update_yaxes(title='Count', visible=False)
     fig.update_layout(legend_orientation='h')
+    
     st.plotly_chart(fig,use_container_width=True)
 

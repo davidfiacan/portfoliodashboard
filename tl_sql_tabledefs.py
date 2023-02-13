@@ -115,7 +115,7 @@ TABLE_MCTOPDD = [lambda s: f"DROP TABLE IF EXISTS TOPDD_{s};"
                                     FROM drawdowns
                                     WHERE
                                         "DD" = 1 -- this is to get 1 record per DD only 
-                                    GROUP BY "EQUITY_HIGH" -- this value should be unique at each DD (technically can be same as other but highly unlikely) 
+                                    GROUP BY "EQUITY_HIGH" -- this value should be unique at each DD (technically can be same as other but highly unlikely so will do for now) 
                                     ORDER BY "PCT" DESC
                                     ;"""
                 ]
