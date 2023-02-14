@@ -362,7 +362,7 @@ if __name__ == '__main__':
     prep_openequity(db)
     prep_trades(db)
     prep_backtestdata(db)
-    prep_montecarlo(db, runscount = 250)
+    prep_montecarlo(db, runscount = 100)
     prep_bizdates(db)
     
     
