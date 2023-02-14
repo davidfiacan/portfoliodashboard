@@ -1,10 +1,13 @@
 ## Algorithmic trading systems portfolio dashboard - project overview
 text
-text
-text
-text
 
-## Set up instructions
+## Project's overview
+[![YouTube Video](https://img.youtube.com/vi/HlqRmQXPYE8/0.jpg)](https://youtu.be/HlqRmQXPYE8)
+
+## Live demo
+👉 **https://portfolio-dash.onrender.com/**
+
+## Set up instructions (if running on your own machine)
 ### 1) Install python on your machine
 - I recommend using Anaconda distribution that can be downloaded from **https://www.anaconda.com/products/distribution**
 ### 2) Download the project
@@ -17,9 +20,3 @@ text
 - run the script from the command line using `python prep.py` from within the project's folder. You may need to set the current working directory to the project's folder using `cd C:\tradingdashboard`
 ### 5) Run the dashboard
 - launch the dashboard from within the project's folder using using `streamlit run MAIN.py`. You may need to set the current working directory to the project's folder using `cd C:\tradingdashboard` if not done already
-
-## Skills demonstrated / technologies used in this project
-text
-text
-text
-text
