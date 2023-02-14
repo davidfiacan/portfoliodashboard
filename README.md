@@ -5,7 +5,7 @@ Dashboard made using Python, Streamlit and SQLite to track critical performance 
 [![YouTube Video](https://img.youtube.com/vi/HlqRmQXPYE8/0.jpg)](https://youtu.be/HlqRmQXPYE8)
 
 ## Live demo
-N.B: Due to Render's free hosting, dashboard's speed is significantly slower than what it should be (e.g. when running on local host). Dashboard has been optimised thoroughly to query and display the data as efficiently (quickly) as possible, but this can't actually be utilised when run on Render's free server
+N.B: Due to Render's free hosting, dashboard's speed is significantly slower than what it should be (e.g. when running on local host). Dashboard has been optimised thoroughly to query and display the data as efficiently (quickly) as possible, but this can't actually be taken full advantage of when run on Render's free server
 **https://portfolio-dash.onrender.com/**
 
 ## Set up instructions (if running on your own machine)
