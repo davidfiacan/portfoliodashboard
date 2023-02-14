@@ -5,7 +5,8 @@ Dashboard made using Python, Streamlit and SQLite to provide critical performanc
 [![YouTube Video](https://img.youtube.com/vi/HlqRmQXPYE8/0.jpg)](https://youtu.be/HlqRmQXPYE8)
 
 ## Live demo
-👉 **https://portfolio-dash.onrender.com/**
+Live dashboard using the example data is deployed on Render, link below
+**https://portfolio-dash.onrender.com/**
 
 ## Set up instructions (if running on your own machine)
 ### 1) Install python on your machine
