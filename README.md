@@ -2,7 +2,8 @@
 Dashboard made using Python, Streamlit and SQLite to track critical performance metrics of a portfolio of algorithmic trading systems. For an in-depth overview of the project, including the dashboard functionality and technologies/frameworks used, please refer to the project's video overview below (video not done yet)
 
 ## Project's overview
-[![YouTube Video](https://img.youtube.com/vi/HlqRmQXPYE8/0.jpg)](https://youtu.be/HlqRmQXPYE8)
+Video overview to follow
+
 
 ## Live demo
 **https://portfolio-dash.onrender.com/**
