@@ -1,13 +1,10 @@
 # Algorithmic trading systems portfolio dashboard
-Dashboard made using Python, Streamlit and SQLite to track critical performance metrics of a portfolio of algorithmic trading systems. For an in-depth overview of the project, including the dashboard functionality and technologies/frameworks used, please refer to the project's video overview below (video not done yet)
+Dashboard made using Python, Streamlit and SQLite to track critical performance metrics of a portfolio of algorithmic trading systems. For an in-depth overview of the project, including the dashboard functionality and technologies/frameworks used, please refer to the project's overview below
 
-## Project's overview
-Video overview to follow
-
-
-## Screenshots
+## Project overview
 ![Demo1](./img/1_probs.jpg?raw=true "Demo1")
-
+![Demo1](./img/2_value.jpg?raw=true "Demo1")
+![Demo1](./img/3_tech.jpg?raw=true "Demo1")
 
 ## Live demo
 **https://portfolio-dash.onrender.com/**
