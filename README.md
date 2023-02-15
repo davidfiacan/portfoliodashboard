@@ -1,10 +1,16 @@
-## Algorithmic trading systems portfolio dashboard - project overview
-text
-text
-text
-text
+# Algorithmic trading systems portfolio dashboard
+Dashboard made using Python, Streamlit and SQLite to track critical performance metrics of a portfolio of algorithmic trading systems. For an in-depth overview of the project, including the dashboard functionality and technologies/frameworks used, please refer to the project's video overview below (video not done yet)
 
-## Set up instructions
+## Project's overview
+Video overview to follow
+
+
+## Live demo
+**https://portfolio-dash.onrender.com/**
+N.B: Due to Render's free hosting, dashboard's speed is significantly slower than what it should be (e.g. when running on local host). Dashboard has been optimised thoroughly to query and display the data as efficiently (quickly) as possible, but this can't actually be taken full advantage of when running on Render's free server
+
+
+## Set up instructions (if running on your own machine)
 ### 1) Install python on your machine
 - I recommend using Anaconda distribution that can be downloaded from **https://www.anaconda.com/products/distribution**
 ### 2) Download the project
@@ -17,9 +23,3 @@ text
 - run the script from the command line using `python prep.py` from within the project's folder. You may need to set the current working directory to the project's folder using `cd C:\tradingdashboard`
 ### 5) Run the dashboard
 - launch the dashboard from within the project's folder using using `streamlit run MAIN.py`. You may need to set the current working directory to the project's folder using `cd C:\tradingdashboard` if not done already
-
-## Skills demonstrated / technologies used in this project
-text
-text
-text
-text
